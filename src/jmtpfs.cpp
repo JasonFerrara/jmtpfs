@@ -22,11 +22,10 @@
 #include "ConnectedMtpDevices.h"
 #include "mtpFilesystemErrors.h"
 #include "Mutex.h"
+#include "FuseHeader.h"
 
 #include <MtpRoot.h>
 #include <iostream>
-#include <fuse.h>
-#include <fuse_opt.h>
 #include <cstddef>
 #include <errno.h>
 #include <sstream>

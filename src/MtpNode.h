@@ -25,7 +25,7 @@
 #include "MtpMetadataCache.h"
 #include "MtpFilesystemPath.h"
 #include "MtpDevice.h"
-#include <fuse.h>
+#include "FuseHeader.h"
 #include <time.h>
 #include <vector>
 #include <string>
