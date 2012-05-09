@@ -410,6 +410,7 @@ int main(int argc, char *argv[])
 
 #ifdef __APPLE__
 	fuse_opt_add_arg(&args, "-f");
+	std::cout << "Running in the background disabled because of an imcompatiblity between fork and libmtp under Max OS X" << std::endl;
 #endif
 
 	int result = fuse_main(args.argc, args.argv, &jmtpfs_oper, 0);
