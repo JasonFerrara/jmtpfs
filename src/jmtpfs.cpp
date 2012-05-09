@@ -402,6 +402,30 @@ int main(int argc, char *argv[])
 	}
 	else
 	{
+		bool foundDevice = 0;
+		ConnectedMtpDevices devices;
+		if (devices.NumDevices()==0)
+		{
+			std::cerr << "No mtp devices found." << std::endl;
+			return -1;
+		}
+		for(int i = 0; i<devices.NumDevices(); i++)
+		{
+			ConnectedDeviceInfo devInfo = devices.GetDeviceInfo(i);
+			if (((devInfo.bus_location == requestedBusLocation) &&
+				  (devInfo.devnum == requestedDevnum)) ||
+				  (requestedBusLocation == -1) || (requestedDevnum == -1))
+			{
+				foundDevice = true;
+				break;
+			}
+		}
+		if (!foundDevice)
+		{
+			std::cerr << "Requested device not found" << std::endl;
+			return -1;
+		}
+
 		cache = std::unique_ptr<MtpMetadataCache>(new MtpMetadataCache);
 		metadataCache = cache.get();
 	}
