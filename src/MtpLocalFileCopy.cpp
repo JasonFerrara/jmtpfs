@@ -22,6 +22,7 @@
 #include "mtpFilesystemErrors.h"
 #include <sys/stat.h>
 #include <iostream>
+#include <unistd.h>
 
 MtpLocalFileCopy::MtpLocalFileCopy(MtpDevice& device, uint32_t id) :
 	m_device(device), m_remoteId(id), m_needWriteBack(false)
