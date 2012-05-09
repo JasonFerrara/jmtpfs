@@ -25,7 +25,6 @@
 #include <unistd.h>
 #include <algorithm>
 #include <magic.h>
-#include <iostream>
 
 
 
@@ -62,8 +61,6 @@ NewLIBMTPFile::operator LIBMTP_file_t*()
 MtpDevice::MtpDevice(LIBMTP_raw_device_t& rawDevice)
 {
 MtpLibLock	lock;
-
-	std::cout << "opening device" << std::endl;
 
 	m_mtpdevice = LIBMTP_Open_Raw_Device_Uncached(&rawDevice);
 	if (m_mtpdevice == 0)
@@ -109,7 +106,6 @@ std::vector<MtpStorageInfo> MtpDevice::GetStorageDevices()
 {
 MtpLibLock	lock;
 
-	std::cout << "get storage devices " << std::endl;
 	if (LIBMTP_Get_Storage(m_mtpdevice, LIBMTP_STORAGE_SORTBY_NOTSORTED))
 	{
 		CheckErrors(true);
