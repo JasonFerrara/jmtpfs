@@ -132,9 +132,12 @@ public:
 	void SetObjectProperty(uint32_t id, LIBMTP_property_t property, const std::string& value);
 	static LIBMTP_filetype_t PropertyTypeFromMimeType(const std::string& mimeType);
 
+
 protected:
 	void CheckErrors(bool throwEvenIfNoError);
 	LIBMTP_mtpdevice_t* m_mtpdevice;
+	uint32_t		m_busLocation;
+	uint8_t			m_devnum;
 	magic_t			m_magicCookie;
 	char			m_magicBuffer[MAGIC_BUFFER_SIZE];
 };

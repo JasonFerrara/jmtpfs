@@ -44,6 +44,7 @@ public:
 	int NumDevices();
 	std::unique_ptr<MtpDevice> GetDevice(int index);
 	ConnectedDeviceInfo	GetDeviceInfo(int index);
+	LIBMTP_raw_device_t& GetRawDeviceEntry(int index);
 
 protected:
 	static bool m_instantiated;

@@ -11,8 +11,12 @@ without warranty of any kind.
 
 Requirements for building
 =========================
-FUSE, libmtp, and libmagic development libraries and headers.
-And install of gcc that supported the C++11 standard.
+FUSE, libmtp, and libmagic (file-devel in Fedora yum and file in macports) 
+development libraries and headers.
+An install of gcc that supports the C++11 standard.
+
+The build has been tested under Fedora 16 with the requirements installed via
+yum and under Mac OS X Lion with the requirements installed via macports.
 
 Basic Installation
 ==================

@@ -2765,7 +2765,6 @@ am__tar='${AMTAR} chof - "$$tardir"'; am__untar='${AMTAR} xf -'
 
 
 
-AX_CXX_COMPILE_STDCXX_0X
 
 ac_ext=cpp
 ac_cpp='$CXXCPP $CPPFLAGS'

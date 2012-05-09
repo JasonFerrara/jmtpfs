@@ -56,6 +56,11 @@ MtpLibLock	lock;
 	return std::unique_ptr<MtpDevice>(new MtpDevice(m_devs[index]));
 }
 
+LIBMTP_raw_device_t& ConnectedMtpDevices::GetRawDeviceEntry(int index)
+{
+	return m_devs[index];
+}
+
 ConnectedMtpDevices::~ConnectedMtpDevices()
 {
 MtpLibLock	lock;

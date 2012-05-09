@@ -32,7 +32,7 @@
 #include <iomanip>
 #include <assert.h>
 
-#define JMTPFS_VERSION "0.1"
+#define JMTPFS_VERSION "0.2"
 
 using namespace std;
 
@@ -68,8 +68,9 @@ RecursiveMutex	globalLock;
 		return -EIO; \
 	}
 
-
-MtpDevice* currentDevice;
+int requestedBusLocation=-1;
+int requestedDevnum=-1;
+std::unique_ptr<MtpDevice> currentDevice;
 MtpMetadataCache* metadataCache;
 
 std::unique_ptr<MtpNode> getNode(const FilesystemPath& path)
@@ -268,6 +269,32 @@ extern "C" int jmtpfs_statfs(const char *pathStr, struct statvfs *stat)
 	FUSE_ERROR_BLOCK_END
 }
 
+extern "C" void* jmtpfs_init(struct fuse_conn_info *conn)
+{
+	currentDevice = 0;
+	ConnectedMtpDevices devices;
+	if (devices.NumDevices()==0)
+	{
+		std::cerr << "No mtp devices found." << std::endl;
+		throw std::runtime_error("No mtp devices found");
+	}
+	for(int i = 0; i<devices.NumDevices(); i++)
+	{
+		ConnectedDeviceInfo devInfo = devices.GetDeviceInfo(i);
+		if (((devInfo.bus_location == requestedBusLocation) &&
+			  (devInfo.devnum == requestedDevnum)) ||
+			  (requestedBusLocation == -1) || (requestedDevnum == -1))
+		{
+			currentDevice = devices.GetDevice(i);
+			break;
+		}
+	}
+	if (currentDevice == 0)
+	{
+		std::cerr << "Requested device not found" << std::endl;
+		throw std::runtime_error("Requested device not found");
+	}
+}
 
 struct jmtpfs_options
 {
@@ -296,7 +323,6 @@ static struct fuse_operations jmtpfs_oper = {
 
 int main(int argc, char *argv[])
 {
-	std::unique_ptr<MtpDevice> device;
 	std::unique_ptr<MtpMetadataCache> cache;
 
 	LIBMTP_Init();
@@ -314,6 +340,7 @@ int main(int argc, char *argv[])
 	jmtpfs_oper.flush = jmtpfs_flush;
 	jmtpfs_oper.rename = jmtpfs_rename;
 	jmtpfs_oper.statfs = jmtpfs_statfs;
+	jmtpfs_oper.init = jmtpfs_init;
 
 	jmtpfs_options options;
 
@@ -344,8 +371,8 @@ int main(int argc, char *argv[])
 		return 0;
 	}
 
-	int requestedBusLocation=-1;
-	int requestedDevnum=-1;
+	requestedBusLocation=-1;
+	requestedDevnum=-1;
 	if (options.device)
 	{
 		std::string devstr(options.device);
@@ -375,30 +402,6 @@ int main(int argc, char *argv[])
 	}
 	else
 	{
-		currentDevice = 0;
-		ConnectedMtpDevices devices;
-		if (devices.NumDevices()==0)
-		{
-			std::cerr << "No mtp devices found." << std::endl;
-			return -1;
-		}
-		for(int i = 0; i<devices.NumDevices(); i++)
-		{
-			ConnectedDeviceInfo devInfo = devices.GetDeviceInfo(i);
-			if (((devInfo.bus_location == requestedBusLocation) &&
-				  (devInfo.devnum == requestedDevnum)) ||
-				  (requestedBusLocation == -1) || (requestedDevnum == -1))
-			{
-				device = devices.GetDevice(i);
-				currentDevice = device.get();
-				break;
-			}
-		}
-		if (currentDevice == 0)
-		{
-			std::cerr << "Requested device not found" << std::endl;
-			return -1;
-		}
 		cache = std::unique_ptr<MtpMetadataCache>(new MtpMetadataCache);
 		metadataCache = cache.get();
 	}
@@ -408,6 +411,8 @@ int main(int argc, char *argv[])
 		std::cout << "jmtpfs version: " << JMTPFS_VERSION << std::endl;
 	}
 	int result = fuse_main(args.argc, args.argv, &jmtpfs_oper, 0);
+
+	currentDevice.reset();
 
 	if (options.displayHelp)
 	{

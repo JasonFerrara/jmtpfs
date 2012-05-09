@@ -20,6 +20,7 @@
  */
 #include "MtpDevice.h"
 #include "MtpLibLock.h"
+#include "ConnectedMtpDevices.h"
 #include <sys/stat.h>
 #include <unistd.h>
 #include <algorithm>
@@ -62,9 +63,13 @@ MtpDevice::MtpDevice(LIBMTP_raw_device_t& rawDevice)
 {
 MtpLibLock	lock;
 
+	std::cout << "opening device" << std::endl;
+
 	m_mtpdevice = LIBMTP_Open_Raw_Device_Uncached(&rawDevice);
 	if (m_mtpdevice == 0)
 		throw MtpErrorCantOpenDevice();
+	m_busLocation = rawDevice.bus_location;
+	m_devnum = rawDevice.devnum;
 	LIBMTP_Clear_Errorstack(m_mtpdevice);
 	m_magicCookie = magic_open(MAGIC_MIME_TYPE);
 	if (m_magicCookie == 0)
@@ -104,6 +109,7 @@ std::vector<MtpStorageInfo> MtpDevice::GetStorageDevices()
 {
 MtpLibLock	lock;
 
+	std::cout << "get storage devices " << std::endl;
 	if (LIBMTP_Get_Storage(m_mtpdevice, LIBMTP_STORAGE_SORTBY_NOTSORTED))
 	{
 		CheckErrors(true);
