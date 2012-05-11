@@ -33,7 +33,7 @@
 #include <iomanip>
 #include <assert.h>
 
-#define JMTPFS_VERSION "0.3"
+#define JMTPFS_VERSION "0.4"
 
 using namespace std;
 
