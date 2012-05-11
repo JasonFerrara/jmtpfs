@@ -19,6 +19,7 @@
  * licensing@fsf.org
  */
 #include "MtpFuseContext.h"
+#include "mtpFilesystemErrors.h"
 #include "MtpRoot.h"
 
 MtpFuseContext::MtpFuseContext(std::unique_ptr<MtpDevice> device,  uid_t uid, gid_t gid) :
@@ -30,7 +31,9 @@ MtpFuseContext::MtpFuseContext(std::unique_ptr<MtpDevice> device,  uid_t uid, gi
 std::unique_ptr<MtpNode> MtpFuseContext::getNode(const FilesystemPath& path)
 {
 	std::unique_ptr<MtpNode> root(new MtpRoot(*m_device, m_cache));
-	if (path.Head()=="/")
+	if (path.Head()!="/")
+		throw FileNotFound(path.str());
+	if (path.str()=="/")
 		return root;
 	else
 		return root->getNode(path.Body());

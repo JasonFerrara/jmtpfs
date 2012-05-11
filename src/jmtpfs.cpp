@@ -245,6 +245,32 @@ extern "C" int jmtpfs_statfs(const char *pathStr, struct statvfs *stat)
 	FUSE_ERROR_BLOCK_END
 }
 
+extern "C" int jmtpfs_chmod(const char* pathStr, mode_t mode)
+{
+	FUSE_ERROR_BLOCK_START
+
+	FilesystemPath path(pathStr);
+	context->getNode(path);
+	// a noop since mtp doesn't support permissions. But we need to pretend
+    // to do it to make things like "cp -r" and the mac finder happy.
+
+	return 0;
+	FUSE_ERROR_BLOCK_END
+}
+
+extern "C" int jmtpfs_utime(const char* pathStr, struct utimbuf*)
+{
+	FUSE_ERROR_BLOCK_START
+
+	FilesystemPath path(pathStr);
+	context->getNode(path);
+	// a noop since mtp doesn't support permissions. But we need to pretend
+    // to do it to make things like "cp -r" and the mac finder happy.
+
+	return 0;
+	FUSE_ERROR_BLOCK_END
+}
+
 
 struct jmtpfs_options
 {
@@ -294,6 +320,8 @@ int main(int argc, char *argv[])
 	jmtpfs_oper.flush = jmtpfs_flush;
 	jmtpfs_oper.rename = jmtpfs_rename;
 	jmtpfs_oper.statfs = jmtpfs_statfs;
+	jmtpfs_oper.chmod = jmtpfs_chmod;
+	jmtpfs_oper.utime = jmtpfs_utime;
 
 	jmtpfs_options options;
 
@@ -435,6 +463,7 @@ int main(int argc, char *argv[])
 #ifdef __APPLE__
 	fuse_opt_add_arg(&args, "-f");
 	std::cout << "Running in the background disabled because of an imcompatiblity between fork and libmtp under Max OS X" << std::endl;
+	fuse_opt_add_arg(&args, "-s"); // bug in fuse4x where multithreaded sometimes doesn't exit correctly.
 #endif
 
 	int result = fuse_main(args.argc, args.argv, &jmtpfs_oper, context.get());
