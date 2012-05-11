@@ -23,8 +23,9 @@
 #include "mtpFilesystemErrors.h"
 #include "Mutex.h"
 #include "FuseHeader.h"
+#include "MtpFuseContext.h"
+#include "MtpRoot.h"
 
-#include <MtpRoot.h>
 #include <iostream>
 #include <cstddef>
 #include <errno.h>
@@ -47,7 +48,8 @@ RecursiveMutex	globalLock;
 #define FUSE_ERROR_BLOCK_START \
 	try \
 	{ \
-	LockMutex lock(globalLock);
+	LockMutex lock(globalLock); \
+	    MtpFuseContext* context((MtpFuseContext*)(fuse_get_context()->private_data)); \
 
 #define FUSE_ERROR_BLOCK_END \
 	} \
@@ -69,28 +71,15 @@ RecursiveMutex	globalLock;
 	}
 
 
-MtpDevice* currentDevice;
-MtpMetadataCache* metadataCache;
-
-std::unique_ptr<MtpNode> getNode(const FilesystemPath& path)
-{
-	if (path.Head() != "/")
-		throw FileNotFound(path.str());
-	std::unique_ptr<MtpNode> root(new MtpRoot(*currentDevice, *metadataCache));
-	FilesystemPath childPath = path.Body();
-	if (childPath.Empty())
-		return root;
-	else
-		return root->getNode(childPath);
-}
-
 
 extern "C" int jmtpfs_getattr(const char* pathStr, struct stat* info)
 {
 	FUSE_ERROR_BLOCK_START
 
 		FilesystemPath path(pathStr);
-		getNode(path)->getattr(*info);
+		context->getNode(path)->getattr(*info);
+		info->st_uid = context->uid();
+		info->st_gid = context->gid();
 		return 0;
 
 	FUSE_ERROR_BLOCK_END
@@ -103,7 +92,7 @@ extern "C" int jmtpfs_readdir(const char* pathStr, void* buf, fuse_fill_dir_t fi
 	FUSE_ERROR_BLOCK_START
 
 		FilesystemPath path(pathStr);
-		std::unique_ptr<MtpNode> n = getNode(path);
+		std::unique_ptr<MtpNode> n = context->getNode(path);
 		std::vector<std::string> contents = n->readdir();
 		for(std::vector<std::string>::iterator i = contents.begin(); i != contents.end(); i++)
 		{
@@ -121,7 +110,7 @@ extern "C" int jmtpfs_open(const char *pathStr, struct fuse_file_info *)
 	FUSE_ERROR_BLOCK_START
 
 	FilesystemPath path(pathStr);
-	getNode(path)->Open();
+	context->getNode(path)->Open();
 	return 0;
 
 	FUSE_ERROR_BLOCK_END
@@ -132,7 +121,7 @@ extern "C" int jmtpfs_release(const char *pathStr, struct fuse_file_info *)
 	FUSE_ERROR_BLOCK_START
 
 	FilesystemPath path(pathStr);
-	getNode(path)->Close();
+	context->getNode(path)->Close();
 	return 0;
 
 	FUSE_ERROR_BLOCK_END
@@ -143,7 +132,7 @@ extern "C" int jmtpfs_read(const char *pathStr, char *buf, size_t  size, off_t o
 	FUSE_ERROR_BLOCK_START
 
 	FilesystemPath path(pathStr);
-	return getNode(path)->Read(buf,size,offset);
+	return context->getNode(path)->Read(buf,size,offset);
 
 	FUSE_ERROR_BLOCK_END
 }
@@ -153,7 +142,7 @@ extern "C" int jmtpfs_mkdir(const char* pathStr, mode_t mode)
 	FUSE_ERROR_BLOCK_START
 
 	FilesystemPath path(pathStr);
-	getNode(path.AllButTail())->mkdir(path.Tail());
+	context->getNode(path.AllButTail())->mkdir(path.Tail());
 	return 0;
 
 	FUSE_ERROR_BLOCK_END
@@ -164,7 +153,7 @@ extern "C" int jmtpfs_rmdir(const char* pathStr)
 	FUSE_ERROR_BLOCK_START
 
 	FilesystemPath path(pathStr);
-	getNode(path)->Remove();
+	context->getNode(path)->Remove();
 	return 0;
 
 	FUSE_ERROR_BLOCK_END
@@ -176,9 +165,9 @@ extern "C" int jmtpfs_create(const char* pathStr, mode_t mode, struct fuse_file_
 	FUSE_ERROR_BLOCK_START
 
 	FilesystemPath path(pathStr);
-	std::unique_ptr<MtpNode> n = getNode(path.AllButTail());
+	std::unique_ptr<MtpNode> n = context->getNode(path.AllButTail());
 	n->CreateFile(path.Tail());
-	n = getNode(path);
+	n = context->getNode(path);
 	n->Open();
 	return 0;
 
@@ -190,7 +179,7 @@ extern "C" int jmtpfs_write(const char *pathStr, const char *data, size_t size, 
 	FUSE_ERROR_BLOCK_START
 
 	FilesystemPath path(pathStr);
-	return getNode(path)->Write(data, size, offset);
+	return context->getNode(path)->Write(data, size, offset);
 
 	FUSE_ERROR_BLOCK_END
 }
@@ -200,7 +189,7 @@ extern "C" int jmtpfs_truncate(const char *pathStr, off_t length)
 	FUSE_ERROR_BLOCK_START
 
 	FilesystemPath path(pathStr);
-	getNode(path)->Truncate(length);
+	context->getNode(path)->Truncate(length);
 	return 0;
 
 	FUSE_ERROR_BLOCK_END
@@ -211,7 +200,7 @@ extern "C" int jmtpfs_unlink(const char *pathStr)
 	FUSE_ERROR_BLOCK_START
 
 	FilesystemPath path(pathStr);
-	getNode(path)->Remove();
+	context->getNode(path)->Remove();
 	return 0;
 
 	FUSE_ERROR_BLOCK_END
@@ -222,7 +211,7 @@ extern "C" int jmtpfs_flush(const char *pathStr, struct fuse_file_info *)
 	FUSE_ERROR_BLOCK_START
 
 	FilesystemPath path(pathStr);
-	getNode(path)->Close();
+	context->getNode(path)->Close();
 	return 0;
 
 	FUSE_ERROR_BLOCK_END
@@ -234,9 +223,9 @@ extern "C" int jmtpfs_rename(const char *pathStr, const char *newPathStr)
 	FUSE_ERROR_BLOCK_START
 
 	FilesystemPath path(pathStr);
-	std::unique_ptr<MtpNode> n = getNode(path);
+	std::unique_ptr<MtpNode> n = context->getNode(path);
 	FilesystemPath newPath(newPathStr);
-	std::unique_ptr<MtpNode> newParent = getNode(newPath.AllButTail());
+	std::unique_ptr<MtpNode> newParent = context->getNode(newPath.AllButTail());
 	n->Rename(*newParent, newPath.Tail());
 
 	return 0;
@@ -249,20 +238,8 @@ extern "C" int jmtpfs_statfs(const char *pathStr, struct statvfs *stat)
 	FUSE_ERROR_BLOCK_START
 
 	FilesystemPath path(pathStr);
-	std::unique_ptr<MtpNode> n = getNode(path);
-	MtpStorageInfo storageInfo = n->GetStorageInfo();
-
-	if (storageInfo.maxCapacity > 0)
-	{
-		stat->f_bsize = 512;  // We have to pick some block size, so why not 512?
-		stat->f_blocks = storageInfo.maxCapacity / stat->f_bsize;
-		stat->f_bfree = storageInfo.freeSpaceInBytes / stat->f_bsize;
-		stat->f_bavail = stat->f_bfree;
-		stat->f_namemax = 233;
-	}
-	else
-		stat->f_flag = ST_RDONLY;
-
+	std::unique_ptr<MtpNode> n = context->getNode(path);
+	n->statfs(stat);
 	return 0;
 
 	FUSE_ERROR_BLOCK_END
@@ -272,16 +249,20 @@ extern "C" int jmtpfs_statfs(const char *pathStr, struct statvfs *stat)
 struct jmtpfs_options
 {
 	jmtpfs_options() : listDevices(0), displayHelp(0),
-			showVersion(0), device(0) {}
+			showVersion(0), device(0), listStorage(0) {}
 
 	int	listDevices;
 	int displayHelp;
 	int showVersion;
+	int listStorage;
 	char* device;
 };
 
 static struct fuse_opt jmtpfs_opts[] = {
 		{"-l", offsetof(struct jmtpfs_options, listDevices), 1},
+		{"--listDevices", offsetof(struct jmtpfs_options, listDevices), 1},
+//		{"-ls", offsetof(struct jmtpfs_options, listStorage), 1},
+//		{"--listStorage", offsetof(struct jmtpfs_options, listStorage), 1},
 		{"-h", offsetof(struct jmtpfs_options, displayHelp), 1},
 		{"-device=%s", offsetof(struct jmtpfs_options, device),0},
 		{"-V", offsetof(struct jmtpfs_options, showVersion),1},
@@ -296,8 +277,7 @@ static struct fuse_operations jmtpfs_oper = {
 
 int main(int argc, char *argv[])
 {
-	std::unique_ptr<MtpDevice> device;
-	std::unique_ptr<MtpMetadataCache> cache;
+
 
 	LIBMTP_Init();
 	jmtpfs_oper.getattr = jmtpfs_getattr;
@@ -328,6 +308,7 @@ int main(int argc, char *argv[])
 	{
 		ConnectedMtpDevices devices;
 		std::vector<std::string> devListing;
+		std::vector<std::vector<std::string> > storageDevices;
 		for(int i=0; i < devices.NumDevices(); i++)
 		{
 			ConnectedDeviceInfo devInfo = devices.GetDeviceInfo(i);
@@ -337,10 +318,27 @@ int main(int argc, char *argv[])
 			devText << "0x" << hex << setfill('0') << setw(4)<< devInfo.vendor_id << ", ";
 			devText << devInfo.product << ", " << devInfo.vendor;
 			devListing.push_back(devText.str());
+			if (options.listStorage)
+			{
+				std::unique_ptr<MtpDevice> device = devices.GetDevice(i);
+				std::vector<MtpStorageInfo> storages = device->GetStorageDevices();
+				std::vector<std::string> storageList;
+				for(std::vector<MtpStorageInfo>::iterator i = storages.begin(); i != storages.end(); i++)
+					storageList.push_back(i->description);
+				storageDevices.push_back(storageList);
+			}
 		}
 		std::cout << "Available devices (busLocation, devNum, productId, vendorId, product, vendor):" << std::endl;
 		for(std::vector<std::string>::iterator i = devListing.begin(); i != devListing.end(); i++)
-			std::cout << *i << std::endl;
+		for(size_t i=0; i<devListing.size(); i++)
+		{
+			std::cout << devListing[i] << std::endl;
+			if (options.listStorage)
+			{
+				for(std::vector<std::string>::iterator s = storageDevices[i].begin(); s != storageDevices[i].end(); s++)
+					std::cout << "    " << *s << std::endl;
+			}
+		}
 		return 0;
 	}
 
@@ -364,6 +362,36 @@ int main(int argc, char *argv[])
 		}
 	}
 
+	if (options.listStorage)
+	{
+		std::unique_ptr<MtpDevice> device;
+		ConnectedMtpDevices devices;
+		if (devices.NumDevices()==0)
+		{
+			std::cerr << "No mtp devices found." << std::endl;
+			return -1;
+		}
+		try
+		{
+			if ((requestedBusLocation!=-1) && (requestedDevnum != -1))
+				device = devices.GetDevice(0);
+			else
+				device = devices.GetDevice(requestedBusLocation, requestedDevnum);
+		}
+		catch(MtpDeviceNotFound&)
+		{
+			std::cerr << "Requested device not found" << std::endl;
+			return -1;
+		}
+		std::cout << "Storage devices on " << device->Get_Modelname() << ":"<< std::endl;
+		std::vector<MtpStorageInfo> storages = device->GetStorageDevices();
+		for(std::vector<MtpStorageInfo>::iterator i = storages.begin(); i != storages.end(); i++)
+			std::cout << "    " << i->description << std::endl;
+		return 0;
+	}
+
+
+	std::unique_ptr<MtpFuseContext> context;
 
 	if (options.displayHelp)
 	{
@@ -375,32 +403,28 @@ int main(int argc, char *argv[])
 	}
 	else
 	{
-		currentDevice = 0;
+		std::unique_ptr<MtpDevice> device;
 		ConnectedMtpDevices devices;
 		if (devices.NumDevices()==0)
 		{
 			std::cerr << "No mtp devices found." << std::endl;
 			return -1;
 		}
-		for(int i = 0; i<devices.NumDevices(); i++)
+		try
 		{
-			ConnectedDeviceInfo devInfo = devices.GetDeviceInfo(i);
-			if (((devInfo.bus_location == requestedBusLocation) &&
-				  (devInfo.devnum == requestedDevnum)) ||
-				  (requestedBusLocation == -1) || (requestedDevnum == -1))
-			{
-				device = devices.GetDevice(i);
-				currentDevice = device.get();
-				break;
-			}
+			if ((requestedBusLocation==-1) || (requestedDevnum == -1))
+				device = devices.GetDevice(0);
+			else
+				device = devices.GetDevice(requestedBusLocation, requestedDevnum);
 		}
-		if (currentDevice == 0)
+		catch(MtpDeviceNotFound&)
 		{
 			std::cerr << "Requested device not found" << std::endl;
 			return -1;
 		}
-		cache = std::unique_ptr<MtpMetadataCache>(new MtpMetadataCache);
-		metadataCache = cache.get();
+
+		context = std::unique_ptr<MtpFuseContext>(new MtpFuseContext(std::move(device), getuid(), getgid()));
+
 	}
 
 	if (options.showVersion)
@@ -413,12 +437,13 @@ int main(int argc, char *argv[])
 	std::cout << "Running in the background disabled because of an imcompatiblity between fork and libmtp under Max OS X" << std::endl;
 #endif
 
-	int result = fuse_main(args.argc, args.argv, &jmtpfs_oper, 0);
+	int result = fuse_main(args.argc, args.argv, &jmtpfs_oper, context.get());
 
 	if (options.displayHelp)
 	{
 		std::cout << std::endl << "jmtpfs options:" << std::endl;
-		std::cout << "    -l                          list available mtp devices and then exit" << std::endl;
+		std::cout << "    -l    --listDevices         list available mtp devices and then exit" << std::endl;
+//		std::cout << "    -ls   --listStorage         list the storage areas on the device (or all devices if -l is also specified)" << std::endl;
 		std::cout << "    -device=<busnum>,<devnum>   Device to mount. It not specified the first device found is used"<< std::endl;
 
 	}

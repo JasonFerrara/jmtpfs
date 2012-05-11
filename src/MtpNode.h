@@ -66,6 +66,10 @@ public:
 	virtual uint32_t FolderId();
 	virtual uint32_t StorageId();
 
+	virtual std::unique_ptr<MtpNode> Clone();
+
+	virtual void statfs(struct statvfs *stat);
+
 protected:
 	uint32_t GetParentNodeId();
 

@@ -54,7 +54,8 @@ am_jmtpfs_OBJECTS = jmtpfs-jmtpfs.$(OBJEXT) jmtpfs-MtpDevice.$(OBJEXT) \
 	jmtpfs-MtpRoot.$(OBJEXT) jmtpfs-MtpLibLock.$(OBJEXT) \
 	jmtpfs-MtpStorage.$(OBJEXT) jmtpfs-MtpFolder.$(OBJEXT) \
 	jmtpfs-MtpFile.$(OBJEXT) jmtpfs-TemporaryFile.$(OBJEXT) \
-	jmtpfs-MtpLocalFileCopy.$(OBJEXT)
+	jmtpfs-MtpLocalFileCopy.$(OBJEXT) \
+	jmtpfs-MtpFuseContext.$(OBJEXT)
 jmtpfs_OBJECTS = $(am_jmtpfs_OBJECTS)
 am__DEPENDENCIES_1 =
 jmtpfs_DEPENDENCIES = $(am__DEPENDENCIES_1) $(am__DEPENDENCIES_1)
@@ -183,7 +184,8 @@ top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
 jmtpfs_SOURCES = jmtpfs.cpp MtpDevice.cpp ConnectedMtpDevices.cpp Mutex.cpp MtpFilesystemPath.cpp \
 	MtpMetadataCache.cpp MtpNode.cpp MtpRoot.cpp MtpLibLock.cpp MtpStorage.cpp \
-	MtpFolder.cpp MtpFile.cpp TemporaryFile.cpp MtpLocalFileCopy.cpp
+	MtpFolder.cpp MtpFile.cpp TemporaryFile.cpp MtpLocalFileCopy.cpp \
+	MtpFuseContext.cpp
 
 jmtpfs_CPPFLAGS = $(MTP_CFLAGS) $(FUSE_CFLAGS)
 jmtpfs_LDADD = $(MTP_LIBS) $(FUSE_LIBS)
@@ -273,6 +275,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/jmtpfs-MtpFile.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/jmtpfs-MtpFilesystemPath.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/jmtpfs-MtpFolder.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/jmtpfs-MtpFuseContext.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/jmtpfs-MtpLibLock.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/jmtpfs-MtpLocalFileCopy.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/jmtpfs-MtpMetadataCache.Po@am__quote@
@@ -492,6 +495,20 @@ jmtpfs-MtpLocalFileCopy.obj: MtpLocalFileCopy.cpp
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='MtpLocalFileCopy.cpp' object='jmtpfs-MtpLocalFileCopy.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(jmtpfs_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o jmtpfs-MtpLocalFileCopy.obj `if test -f 'MtpLocalFileCopy.cpp'; then $(CYGPATH_W) 'MtpLocalFileCopy.cpp'; else $(CYGPATH_W) '$(srcdir)/MtpLocalFileCopy.cpp'; fi`
+
+jmtpfs-MtpFuseContext.o: MtpFuseContext.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(jmtpfs_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT jmtpfs-MtpFuseContext.o -MD -MP -MF $(DEPDIR)/jmtpfs-MtpFuseContext.Tpo -c -o jmtpfs-MtpFuseContext.o `test -f 'MtpFuseContext.cpp' || echo '$(srcdir)/'`MtpFuseContext.cpp
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/jmtpfs-MtpFuseContext.Tpo $(DEPDIR)/jmtpfs-MtpFuseContext.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='MtpFuseContext.cpp' object='jmtpfs-MtpFuseContext.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(jmtpfs_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o jmtpfs-MtpFuseContext.o `test -f 'MtpFuseContext.cpp' || echo '$(srcdir)/'`MtpFuseContext.cpp
+
+jmtpfs-MtpFuseContext.obj: MtpFuseContext.cpp
+@am__fastdepCXX_TRUE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(jmtpfs_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT jmtpfs-MtpFuseContext.obj -MD -MP -MF $(DEPDIR)/jmtpfs-MtpFuseContext.Tpo -c -o jmtpfs-MtpFuseContext.obj `if test -f 'MtpFuseContext.cpp'; then $(CYGPATH_W) 'MtpFuseContext.cpp'; else $(CYGPATH_W) '$(srcdir)/MtpFuseContext.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(am__mv) $(DEPDIR)/jmtpfs-MtpFuseContext.Tpo $(DEPDIR)/jmtpfs-MtpFuseContext.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='MtpFuseContext.cpp' object='jmtpfs-MtpFuseContext.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(jmtpfs_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o jmtpfs-MtpFuseContext.obj `if test -f 'MtpFuseContext.cpp'; then $(CYGPATH_W) 'MtpFuseContext.cpp'; else $(CYGPATH_W) '$(srcdir)/MtpFuseContext.cpp'; fi`
 
 ID: $(HEADERS) $(SOURCES) $(LISP) $(TAGS_FILES)
 	list='$(SOURCES) $(HEADERS) $(LISP) $(TAGS_FILES)'; \

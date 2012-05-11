@@ -32,6 +32,8 @@ public:
 	void Remove();
 
 	void Rename(MtpNode& newParent, const std::string& newName);
+
+	std::unique_ptr<MtpNode> Clone();
 };
 
 

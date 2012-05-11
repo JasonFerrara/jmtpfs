@@ -1,5 +1,5 @@
 /*
- * MtpRoot.h
+ * MtpFuseContext.cpp
  *
  *      Author: Jason Ferrara
  *
@@ -18,31 +18,30 @@
  * Boston, MA 02111-1301, USA.
  * licensing@fsf.org
  */
+#include "MtpFuseContext.h"
+#include "MtpRoot.h"
 
-#ifndef MTPROOT_H_
-#define MTPROOT_H_
-
-#include "MtpNode.h"
-
-class MtpRoot : public MtpNode
+MtpFuseContext::MtpFuseContext(std::unique_ptr<MtpDevice> device,  uid_t uid, gid_t gid) :
+	m_device(std::move(device)), m_uid(uid), m_gid(gid)
 {
-public:
-	MtpRoot(MtpDevice& device, MtpMetadataCache& cache);
 
-	std::unique_ptr<MtpNode> getNode(const FilesystemPath& path);
-	void getattr(struct stat& info);
+}
 
-	std::vector<std::string> readDirectory();
+std::unique_ptr<MtpNode> MtpFuseContext::getNode(const FilesystemPath& path)
+{
+	std::unique_ptr<MtpNode> root(new MtpRoot(*m_device, m_cache));
+	if (path.Head()=="/")
+		return root;
+	else
+		return root->getNode(path.Body());
+}
 
-	void mkdir(const std::string& name);
-	void Remove();
-	MtpNodeMetadata getMetadata();
+uid_t MtpFuseContext::uid() const
+{
+	return m_uid;
+}
 
-	MtpStorageInfo GetStorageInfo();
-
-	void statfs(struct statvfs *stat);
-};
-
-
-
-#endif /* MTPROOT_H_ */
+gid_t MtpFuseContext::gid() const
+{
+	return m_gid;
+}

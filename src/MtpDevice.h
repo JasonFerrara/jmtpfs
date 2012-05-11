@@ -60,6 +60,12 @@ public:
 	MtpDeviceDisconnected(const std::string& message) : MtpError(message, LIBMTP_ERROR_NO_DEVICE_ATTACHED) {}
 };
 
+class MtpDeviceNotFound : public MtpError
+{
+public:
+	MtpDeviceNotFound(const std::string& message) : MtpError(message, LIBMTP_ERROR_GENERAL) {}
+};
+
 class MtpStorageNotFound : public MtpError
 {
 public:

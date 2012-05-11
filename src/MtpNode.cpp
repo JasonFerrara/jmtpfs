@@ -122,3 +122,21 @@ MtpStorageInfo MtpNode::GetStorageInfo()
 	MtpNodeMetadata md = m_cache.getItem(m_id, *this);
 	return m_device.GetStorageInfo(md.self.storageId);
 }
+
+void MtpNode::statfs(struct statvfs *stat)
+{
+
+	MtpStorageInfo storageInfo = GetStorageInfo();
+
+	stat->f_bsize = 512;  // We have to pick some block size, so why not 512?
+	stat->f_blocks = storageInfo.maxCapacity / stat->f_bsize;
+	stat->f_bfree = storageInfo.freeSpaceInBytes / stat->f_bsize;
+	stat->f_bavail = stat->f_bfree;
+	stat->f_namemax = 233;
+
+}
+
+std::unique_ptr<MtpNode> MtpNode::Clone()
+{
+	throw NotImplemented("Clone");
+}

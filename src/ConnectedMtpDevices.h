@@ -43,6 +43,8 @@ public:
 
 	int NumDevices();
 	std::unique_ptr<MtpDevice> GetDevice(int index);
+	std::unique_ptr<MtpDevice> GetDevice(uint32_t busLocation, uint8_t devnum);
+
 	ConnectedDeviceInfo	GetDeviceInfo(int index);
 	LIBMTP_raw_device_t& GetRawDeviceEntry(int index);
 

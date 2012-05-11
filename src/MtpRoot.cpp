@@ -94,3 +94,24 @@ MtpStorageInfo MtpRoot::GetStorageInfo()
 {
 	return MtpStorageInfo(0,"",0,0);
 }
+
+void MtpRoot::statfs(struct statvfs *stat)
+{
+	size_t totalSize = 0;
+	size_t totalFree = 0;
+
+	std::vector<std::string> storages = readDirectory();
+	for(std::vector<std::string>::iterator s = storages.begin(); s != storages.end(); s++)
+	{
+		MtpStorageInfo info = getNode(FilesystemPath(s->c_str()))->GetStorageInfo();
+		totalSize += info.maxCapacity;
+		totalFree += info.freeSpaceInBytes;
+	}
+
+	stat->f_bsize = 512;  // We have to pick some block size, so why not 512?
+	stat->f_blocks = totalSize / stat->f_bsize;
+	stat->f_bfree = totalFree / stat->f_bsize;
+	stat->f_bavail = stat->f_bfree;
+	stat->f_namemax = 233;
+
+}

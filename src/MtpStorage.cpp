@@ -27,7 +27,10 @@ MtpStorage::MtpStorage(MtpDevice& device, MtpMetadataCache& cache, uint32_t id) 
 
 }
 
-
+std::unique_ptr<MtpNode> MtpStorage::Clone()
+{
+	return std::unique_ptr<MtpNode>(new MtpStorage(m_device, m_cache, m_id));
+}
 
 
 

@@ -56,6 +56,22 @@ MtpLibLock	lock;
 	return std::unique_ptr<MtpDevice>(new MtpDevice(m_devs[index]));
 }
 
+std::unique_ptr<MtpDevice> ConnectedMtpDevices::GetDevice(uint32_t busLocation, uint8_t devnum)
+{
+MtpLibLock	lock;
+
+	for(int i = 0; i<NumDevices(); i++)
+	{
+		ConnectedDeviceInfo devInfo = GetDeviceInfo(i);
+		if ((devInfo.bus_location == busLocation) &&
+			  (devInfo.devnum == devnum))
+		{
+			return GetDevice(i);;
+		}
+	}
+	throw MtpDeviceNotFound("Requested MTP device not found");
+}
+
 LIBMTP_raw_device_t& ConnectedMtpDevices::GetRawDeviceEntry(int index)
 {
 	return m_devs[index];

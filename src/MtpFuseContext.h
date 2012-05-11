@@ -1,5 +1,5 @@
 /*
- * MtpRoot.h
+ * MtpFuseContext.h
  *
  *      Author: Jason Ferrara
  *
@@ -19,30 +19,31 @@
  * licensing@fsf.org
  */
 
-#ifndef MTPROOT_H_
-#define MTPROOT_H_
+#ifndef MTPFUSECONTEXT_H_
+#define MTPFUSECONTEXT_H_
 
+#include "MtpDevice.h"
+#include "MtpMetadataCache.h"
 #include "MtpNode.h"
+#include <memory>
+#include <sys/types.h>
 
-class MtpRoot : public MtpNode
+class MtpFuseContext
 {
 public:
-	MtpRoot(MtpDevice& device, MtpMetadataCache& cache);
+	MtpFuseContext(std::unique_ptr<MtpDevice> device,  uid_t uid, gid_t gid);
 
 	std::unique_ptr<MtpNode> getNode(const FilesystemPath& path);
-	void getattr(struct stat& info);
 
-	std::vector<std::string> readDirectory();
+	uid_t uid() const;
+	gid_t gid() const;
 
-	void mkdir(const std::string& name);
-	void Remove();
-	MtpNodeMetadata getMetadata();
-
-	MtpStorageInfo GetStorageInfo();
-
-	void statfs(struct statvfs *stat);
+protected:
+	uid_t						m_uid;
+	gid_t						m_gid;
+	std::unique_ptr<MtpDevice>	m_device;
+	MtpMetadataCache 		  	m_cache;
 };
 
 
-
-#endif /* MTPROOT_H_ */
+#endif /* MTPFUSECONTEXT_H_ */
