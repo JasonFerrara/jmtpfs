@@ -23,7 +23,6 @@ AC_SUBST(FUSE_LIBS)
 AC_CHECK_LIB([magic],[magic_open])
 AC_CHECK_HEADERS([magic.h])
 
-LDFLAGS="$LDFLAGS -lmagic"
 
 AC_CONFIG_FILES(Makefile src/Makefile)
 AC_OUTPUT
