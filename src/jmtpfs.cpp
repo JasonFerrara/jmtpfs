@@ -291,6 +291,7 @@ static struct fuse_opt jmtpfs_opts[] = {
 //		{"-ls", offsetof(struct jmtpfs_options, listStorage), 1},
 //		{"--listStorage", offsetof(struct jmtpfs_options, listStorage), 1},
 		{"-h", offsetof(struct jmtpfs_options, displayHelp), 1},
+		{"--help", offsetof(struct jmtpfs_options, displayHelp),1},
 		{"-device=%s", offsetof(struct jmtpfs_options, device),0},
 		{"-V", offsetof(struct jmtpfs_options, showVersion),1},
 		{"--version", offsetof(struct jmtpfs_options, showVersion),1},
@@ -305,8 +306,6 @@ static struct fuse_operations jmtpfs_oper = {
 int main(int argc, char *argv[])
 {
 
-
-	LIBMTP_Init();
 	jmtpfs_oper.getattr = jmtpfs_getattr;
 	jmtpfs_oper.readdir = jmtpfs_readdir;
 	jmtpfs_oper.open = jmtpfs_open;
@@ -335,6 +334,7 @@ int main(int argc, char *argv[])
 
 	if (options.listDevices)
 	{
+		LIBMTP_Init();
 		ConnectedMtpDevices devices;
 		std::vector<std::string> devListing;
 		std::vector<std::vector<std::string> > storageDevices;
@@ -368,7 +368,7 @@ int main(int argc, char *argv[])
 					std::cout << "    " << *s << std::endl;
 			}
 		}
-		return 0;
+		return EXIT_SUCCESS;
 	}
 
 	int requestedBusLocation=-1;
@@ -393,6 +393,7 @@ int main(int argc, char *argv[])
 
 	if (options.listStorage)
 	{
+		LIBMTP_Init();
 		std::unique_ptr<MtpDevice> device;
 		ConnectedMtpDevices devices;
 		if (devices.NumDevices()==0)
@@ -416,7 +417,7 @@ int main(int argc, char *argv[])
 		std::vector<MtpStorageInfo> storages = device->GetStorageDevices();
 		for(std::vector<MtpStorageInfo>::iterator i = storages.begin(); i != storages.end(); i++)
 			std::cout << "    " << i->description << std::endl;
-		return 0;
+		return EXIT_SUCCESS;
 	}
 
 
@@ -432,6 +433,7 @@ int main(int argc, char *argv[])
 	}
 	else
 	{
+		LIBMTP_Init();
 		std::unique_ptr<MtpDevice> device;
 		ConnectedMtpDevices devices;
 		if (devices.NumDevices()==0)
