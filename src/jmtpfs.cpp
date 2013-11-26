@@ -32,6 +32,7 @@
 #include <sstream>
 #include <iomanip>
 #include <assert.h>
+#include <unistd.h>
 
 #define JMTPFS_VERSION "0.4"
 

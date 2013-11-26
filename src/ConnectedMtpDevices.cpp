@@ -92,9 +92,15 @@ ConnectedDeviceInfo	ConnectedMtpDevices::GetDeviceInfo(int index)
 	info.bus_location = m_devs[index].bus_location;
 	info.devnum = m_devs[index].devnum;
 	info.device_flags = m_devs[index].device_entry.device_flags;
-	info.product = m_devs[index].device_entry.product;
+	if (m_devs[index].device_entry.product)
+		info.product = m_devs[index].device_entry.product;
+	else
+		info.product = "UNKNOWN";
 	info.product_id = m_devs[index].device_entry.product_id;
-	info.vendor = m_devs[index].device_entry.vendor;
+	if (m_devs[index].device_entry.vendor)
+		info.vendor = m_devs[index].device_entry.vendor;
+	else
+		info.vendor = "UNKNOWN";
 	info.vendor_id = m_devs[index].device_entry.vendor_id;
 
 	return info;
