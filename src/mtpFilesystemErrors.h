@@ -22,6 +22,8 @@
 #define MTPFILESYSTEMERRORS_H_
 
 #include <stdexcept>
+#include <errno.h>
+#include <string>
 
 // There appears to be a bug in Android 4.0.4 on the Galaxy Nexus (and maybe
 // other Android versions as well) where if you specify a filename greater
