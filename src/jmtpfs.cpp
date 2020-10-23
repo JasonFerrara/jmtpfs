@@ -453,7 +453,11 @@ int main(int argc, char *argv[])
 			std::cerr << "Requested device not found" << std::endl;
 			return -1;
 		}
-
+		catch(MtpErrorCantOpenDevice&)
+		{
+			std::cerr << "Cannot open requested device" << std::endl;
+			return -1;
+		}
 		context = std::unique_ptr<MtpFuseContext>(new MtpFuseContext(std::move(device), getuid(), getgid()));
 
 	}
