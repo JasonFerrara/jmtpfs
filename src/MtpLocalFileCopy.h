@@ -39,7 +39,7 @@ public:
 
 	off_t getSize();
 
-	void seek(long offset);
+	void seek(off_t offset);
 	size_t write(const void* ptr, size_t size);
 	void truncate(off_t length);
 	size_t read(void* ptr, size_t size);
