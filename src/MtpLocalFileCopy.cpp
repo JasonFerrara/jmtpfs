@@ -85,9 +85,9 @@ off_t MtpLocalFileCopy::getSize()
 	return tempInfo.st_size;
 }
 
-void MtpLocalFileCopy::seek(long offset)
+void MtpLocalFileCopy::seek(off_t offset)
 {
-	if (fseek(m_localFile, offset, SEEK_SET))
+	if (fseeko(m_localFile, offset, SEEK_SET))
 		throw MtpFilesystemErrorWithErrorCode(errno, "seek failed");
 }
 
